@@ -93,7 +93,7 @@ Data/F4SE/Plugins/Fallout4WheelMenu.dll
 
 ## License
 
-The project-authored C++ source in this repository is released under the MIT
-License. Built binaries also contain `commonlib-shared` code distributed under
-GPL-3.0 with the CommonLib Modding Exception. See `THIRD_PARTY_NOTICES.md` and
-`licenses/commonlib-shared` for the applicable third-party terms.
+The project-authored C++ source in this repository is released under
+GPL-3.0-only. Built binaries also contain `commonlib-shared` code distributed
+under GPL-3.0 with the CommonLib Modding Exception. See `COPYRIGHT`,
+`THIRD_PARTY_NOTICES.md`, and `licenses/commonlib-shared` for details.
