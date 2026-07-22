@@ -5,6 +5,8 @@ supplements the Favorites input, collects inventory data, and sends wheel,
 favorite-slot, layout, hotkey, and condition information to a compatible
 Scaleform UI.
 
+Mod page and downloads: [Fallout4WheelMenu on Nexus Mods](https://www.nexusmods.com/fallout4/mods/105620)
+
 ## Source scope
 
 This repository intentionally contains only the independently maintained C++
