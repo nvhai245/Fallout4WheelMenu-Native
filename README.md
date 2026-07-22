@@ -43,19 +43,22 @@ repository.
 - Visual Studio 2022 Build Tools with Desktop development with C++
 - Git
 - XMake 3.0 or later
+- [Dear-Modding-FO4/commonlibf4](https://github.com/Dear-Modding-FO4/commonlibf4)
 - Fallout 4 Script Extender
 - A compatible Wheel Menu Scaleform UI package
 
 ## Build
 
-The build script downloads the pinned CommonLibF4 revision into `.deps/` when
-needed, configures XMake, and builds the plugin:
+This project must be built against the
+[Dear-Modding-FO4 CommonLibF4 fork](https://github.com/Dear-Modding-FO4/commonlibf4).
+The build script downloads the pinned revision from that fork into `.deps/`
+when needed, configures XMake, and builds the plugin:
 
 ```powershell
 .\scripts\build.ps1
 ```
 
-To use an existing CommonLibF4 checkout:
+To use an existing checkout of the same CommonLibF4 fork:
 
 ```powershell
 .\scripts\build.ps1 -CommonLibF4Path D:\path\to\commonlibf4
