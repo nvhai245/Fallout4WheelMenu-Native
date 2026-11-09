@@ -774,7 +774,17 @@ namespace WheelMenuNative {
         const bool isIndependentKey = !replacesFavorites &&
             a_event->device == RE::INPUT_DEVICE::kKeyboard &&
             static_cast<std::uint32_t>(a_event->GetBSButtonCode()) == ConfigUI::g_Settings.wheelHotkey;
-        const bool isWheelActivationKey = replacesFavorites ? (isNativeFavoritesKey || isQuickSlotKey) : isIndependentKey;
+        // 按住模式：记录打开轮盘的物理按键。菜单打开后输入上下文切换为 kQuickContainerMenu，
+        // 十字键在该上下文下不再映射为 QuickkeyUp/Down/Left/Right，松开事件会被下方粗过滤丢弃，
+        // 导致「按住打开、松开关闭」对十字键失效。这里按物理按键匹配松开事件。
+        static std::uint32_t s_holdActivationKey = 0xFFFFFFFF;
+        const bool isHoldActivationRelease = !isDown && !ConfigUI::g_Settings.toggleMode &&
+            s_holdActivationKey != 0xFFFFFFFF && keyHash == s_holdActivationKey;
+        if (isHoldActivationRelease) {
+            s_holdActivationKey = 0xFFFFFFFF;
+        }
+        const bool isWheelActivationKey = isHoldActivationRelease ||
+            (replacesFavorites ? (isNativeFavoritesKey || isQuickSlotKey) : isIndependentKey);
         const bool isOpenNavigationKey = isOpen && isQuickSlotKey;
         const bool suppressNativeFavoritesWhileOpen = isOpen && isNativeFavoritesKey;
         bool isCancelKey = (userEvent == "Cancel");
@@ -794,7 +804,7 @@ namespace WheelMenuNative {
         // （玩家反馈「手柄无法用十字键选对话」的根因就在这里）。
         // 此时直接原样放行给游戏，不 kStop、不开环。
         // 注意：这段必须放在 D-Pad disabled 过滤(下方)和无条件 kStop 之前。
-        if (replacesFavorites && !isOpen && !isHandlingCloseRelease) {
+        if (replacesFavorites && !isOpen && !isHandlingCloseRelease && !isHoldActivationRelease) {
             auto guardPlayer = RE::PlayerCharacter::GetSingleton();
             auto guardAvManager = RE::ActorValue::GetSingleton();
             if (guardPlayer && guardAvManager && guardAvManager->health &&
@@ -808,7 +818,7 @@ namespace WheelMenuNative {
 
         // 🎮 D-Pad 过滤：菜单关闭时，对每个方向检查配置
         // 必须在 handled=kStop 之前，这样 disabled 的方向才能被正确拦截
-        if (!isOpen && !isHandlingCloseRelease) {
+        if (!isOpen && !isHandlingCloseRelease && !isHoldActivationRelease) {
             if (userEvent == "QuickkeyUp" && ConfigUI::g_Settings.dpadUpAction == 0) {
                 const_cast<RE::ButtonEvent*>(a_event)->handled = RE::InputEvent::HANDLED_RESULT::kStop;
                 return;
@@ -865,7 +875,7 @@ namespace WheelMenuNative {
         }
 
         if (isWheelActivationKey) {
-            if (!isOpen) {
+            if (!isOpen && !isHoldActivationRelease) {
                 auto player = RE::PlayerCharacter::GetSingleton();
                 auto avManager = RE::ActorValue::GetSingleton();
                 if (player && avManager && avManager->health) {
@@ -887,6 +897,9 @@ namespace WheelMenuNative {
             }
             else {
                 if (isDown != WheelMenu::DesiredState) {
+                    if (isDown) {
+                        s_holdActivationKey = keyHash;
+                    }
                     if (isDown && !isOpen) {
                         s_openStartTime = std::chrono::high_resolution_clock::now();
                         LogPerf("【节点 1】物理快捷键按下(按住模式)！发送菜单开启指令...");
